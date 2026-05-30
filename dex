@@ -3342,34 +3342,67 @@ return search]==]
 		Explorer.SetupConnections()
 
 		local insts = getDescendants(game)
-		if Main.Elevated then
-			for i = 1,#insts do
-				local obj = insts[i]
-				local par = nodes[ffa(obj,"Instance")]
-				if not par then continue end
-				local newNode = {
-					Obj = obj,
-					Parent = par,
-				}
-				nodes[obj] = newNode
-				par[#par+1] = newNode
-			end
-		else
-			for i = 1,#insts do
-				local obj = insts[i]
-				local s,parObj = pcall(ffa,obj,"Instance")
-				local par = nodes[parObj]
-				if not par then continue end
-				local newNode = {
-					Obj = obj,
-					Parent = par,
-				}
-				nodes[obj] = newNode
-				par[#par+1] = newNode
-			end
-		end
-	end
+		local insts = getDescendants(game)
+local chunkSize = 2000
+local index = 1
+local totalInstances = #insts
 
+local function processInitialChunk()
+    local startTime = tick()
+    local processed = 0
+    
+    while index <= totalInstances and tick() - startTime < 0.033 do
+        local obj = insts[index]
+        
+        -- Skip non-essential instance types for faster loading
+        local classSkip = {
+            ["ParticleEmitter"] = true,
+            ["Smoke"] = true,
+            ["Fire"] = true,
+            ["Sparkles"] = true,
+            ["Decal"] = true,
+            ["Texture"] = true,
+            ["Trail"] = true,
+            ["Beam"] = true,
+        }
+        
+        if not classSkip[obj.ClassName] then
+            if Main.Elevated then
+                local par = nodes[ffa(obj,"Instance")]
+                if par then
+                    local newNode = {
+                        Obj = obj,
+                        Parent = par,
+                    }
+                    nodes[obj] = newNode
+                    par[#par+1] = newNode
+                end
+            else
+                local s,parObj = pcall(ffa,obj,"Instance")
+                local par = nodes[parObj]
+                if par then
+                    local newNode = {
+                        Obj = obj,
+                        Parent = par,
+                    }
+                    nodes[obj] = newNode
+                    par[#par+1] = newNode
+                end
+            end
+        end
+        
+        index = index + 1
+        processed = processed + 1
+    end
+    
+    if index <= totalInstances then
+        task.wait()
+        processInitialChunk()
+    end
+end
+
+-- Start processing in chunks
+processInitialChunk()
 	return Explorer
 end
 
