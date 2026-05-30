@@ -1760,11 +1760,6 @@ local function main()
 
 		context:QueueDivider()
 
-		if presentClasses["BasePart"] or presentClasses["Model"] then
-			context:AddRegistered("TELEPORT_TO")
-			context:AddRegistered("VIEW_OBJECT")
-			context:AddRegistered("3DVIEW_MODEL")
-		end
 		if presentClasses["Tween"] then context:AddRegistered("PLAY_TWEEN") end
 		if presentClasses["Animation"] then
 			context:AddRegistered("LOAD_ANIMATION")
@@ -2020,46 +2015,6 @@ local function main()
 			end
 		end})
 
-		context:Register("TELEPORT_TO",{Name = "Teleport To", IconMap = Explorer.MiscIcons, Icon = "TeleportTo", OnClick = function()
-			local sList = selection.List
-			local plrRP = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-
-			if not plrRP then return end
-
-			for _,node in next, sList do
-				local Obj = node.Obj
-
-				if Obj:IsA("BasePart") then
-					if Obj.CanCollide then
-						plr.Character:MoveTo(Obj.Position)
-					else
-						plrRP.CFrame = CFrame.new(Obj.Position + Settings.Explorer.TeleportToOffset)
-					end
-					break
-				elseif Obj:IsA("Model") then
-					if Obj.PrimaryPart then
-						if Obj.PrimaryPart.CanCollide then
-							plr.Character:MoveTo(Obj.PrimaryPart.Position)
-						else
-							plrRP.CFrame = CFrame.new(Obj.PrimaryPart.Position + Settings.Explorer.TeleportToOffset)
-						end
-						break
-					else
-						local part = Obj:FindFirstChildWhichIsA("BasePart", true)
-						if part and nodes[part] then
-							if part.CanCollide then
-								plr.Character:MoveTo(part.Position)
-							else
-								plrRP.CFrame = CFrame.new(part.Position + Settings.Explorer.TeleportToOffset)
-							end
-							break
-						elseif Obj.WorldPivot then
-							plrRP.CFrame = Obj.WorldPivot
-						end
-					end
-				end
-			end
-		end})
 
 		local OldAnimation
 		context:Register("PLAY_TWEEN",{Name = "Play Tween", IconMap = Explorer.MiscIcons, Icon = "Play", OnClick = function()
@@ -2284,34 +2239,6 @@ local function main()
 					"https://create.roblox.com/docs/reference/engine/classes/"..sList[1].Obj.ClassName
 				)
 			end
-		end})
-
-		context:Register("3DVIEW_MODEL",{Name = "3D Preview Object", IconMap = Explorer.LegacyClassIcons, Icon = 54, OnClick = function()
-			local sList = selection.List
-			local isa = game.IsA
-			
-			if #sList == 1 then
-				if isa(sList[1].Obj,"BasePart") or isa(sList[1].Obj,"Model") then
-					ModelViewer.ViewModel(sList[1].Obj)
-					return
-				end
-			end
-		end})
-		
-		context:Register("VIEW_OBJECT",{Name = "View Object (Right click to reset)", IconMap = Explorer.LegacyClassIcons, Icon = 5, OnClick = function()
-			local sList = selection.List
-			local isa = game.IsA
-
-			for i = 1,#sList do
-				local node = sList[i]
-
-				if isa(node.Obj,"BasePart") or isa(node.Obj,"Model") then
-					workspace.CurrentCamera.CameraSubject = node.Obj
-					break
-				end
-			end
-		end, OnRightClick = function()
-			workspace.CurrentCamera.CameraSubject = plr.Character
 		end})
 
 		context:Register("VIEW_SCRIPT",{Name = "View Script", IconMap = Explorer.MiscIcons, Icon = "ViewScript", DisabledIcon = "Empty", OnClick = function()
@@ -15475,7 +15402,6 @@ env.decompile = function(script_instance)
 				"Contributors >>",
 				"Toon (IY Dex and PRs)",
 				"Moon (Dex)",
-				"Cazan (3D Preview)",
 			}
 			
 			if isInfoCD then return end
@@ -15533,9 +15459,7 @@ env.decompile = function(script_instance)
 		
 		Main.CreateApp({Name = "Save Instance", IconMap = Main.LargeIcons, Icon = "Book", Window = SaveInstance.Window})
 		
-		Main.CreateApp({Name = "3D Viewer", IconMap = Main.LargeIcons, Icon = "Object", Window = ModelViewer.Window})
-
-		--Main.CreateApp({Name = "Secret Service Panel", IconMap = Main.LargeIcons, Icon = "Output", Window = SecretServicePanel.Window})
+		Main.CreateApp({Name = "Secret Service Panel", IconMap = Main.LargeIcons, Icon = "Output", Window = SecretServicePanel.Window})
 		
 		for _, loadedplugin in pairs(Main.Plugins) do
 			Main.CreateApp({Name = loadedplugin.PluginData.FriendlyName, IconMap = Explorer.ClassIcons, Icon = "Attachment", Window = loadedplugin.Window})
