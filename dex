@@ -15761,7 +15761,9 @@ Main = (function()
 		end
 
 		-- Initialize everything in one go without yielding
+		task.wait(5)
 		Lib.Window.Init()
+		task.wait(5)
 		Main.CreateMainGui()
 
 		-- Direct property setting without extra method calls
