@@ -15748,19 +15748,39 @@ Main = (function()
 		Lib.FastWait()
 
 		-- Done
-		intro.SetProgress("Complete",1)
-		coroutine.wrap(function()
-			Lib.FastWait(1.25)
-			intro.Close()
-		end)()
+		-- Fastest possible initialization with minimal lag
+		intro.SetProgress("Complete", 1)
+		intro.InstantClose = intro.InstantClose or (intro.Close and function() intro.Visible = false intro:Destroy() end)
+		if intro.InstantClose then intro.InstantClose() else intro.Close() end
 
-		-- Init window system, create main menu, show explorer and properties
+		-- Disable all visual updates during setup
+		local oldRenderSetting
+		if Lib.Window.SetRenderEnabled then
+    		oldRenderSetting = true
+    		Lib.Window.SetRenderEnabled(false)
+		end
+
+		-- Initialize everything in one go without yielding
 		Lib.Window.Init()
 		Main.CreateMainGui()
-		Explorer.Window:Show({Align = "right", Pos = 1, Size = 0.5, Silent = true})
-		Properties.Window:Show({Align = "right", Pos = 2, Size = 0.5, Silent = true})
-		
-		Lib.DeferFunc(function() Lib.Window.ToggleSide("right") end)
+
+		-- Direct property setting without extra method calls
+		local explorerWin = Explorer.Window
+		local propsWin = Properties.Window
+
+		-- Show windows without any animations or delays
+		explorerWin:Show({Align = "right", Pos = 1, Size = 0.5, Silent = true, NoAnim = true})
+		propsWin:Show({Align = "right", Pos = 2, Size = 0.5, Silent = true, NoAnim = true})
+
+		-- Re-enable rendering
+		if oldRenderSetting then
+    		Lib.Window.SetRenderEnabled(true)
+		end
+
+		-- Single deferred call for toggle
+		task.defer(function()
+    		Lib.Window.ToggleSide("right")
+		end)
 	end
 	
 	Main.Uninit = function()
