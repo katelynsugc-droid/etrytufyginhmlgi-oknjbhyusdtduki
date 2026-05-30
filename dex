@@ -15755,19 +15755,9 @@ Main = (function()
 		task.wait(5)
 		if intro.InstantClose then intro.InstantClose() else intro.Close() end
 
-		-- Disable all visual updates during setup
-		local oldRenderSetting
-		if Lib.Window.SetRenderEnabled then
-			task.wait(5)
-    		oldRenderSetting = true
-			task.wait(5)
-    		Lib.Window.SetRenderEnabled(false)
-		end
 
 		-- Initialize everything in one go without yielding
-		task.wait(5)
 		Lib.Window.Init()
-		task.wait(5)
 		Main.CreateMainGui()
 
 		-- Direct property setting without extra method calls
