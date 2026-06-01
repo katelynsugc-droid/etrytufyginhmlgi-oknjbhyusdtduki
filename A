@@ -1,29 +1,93 @@
 -- Do not save this file
 -- Always use the loadstring 
 _bsdata0={2625228380,"2__RR333_L3R4-CB-1ACD1_1-..435_01-.2_D-114-12AR3EL_B--_-B-4.-1-LC414AB_-A-5B4321R0R-AL1-52_DDL3_2L5RDLA1131-C0LACDC4RR4E.CCB.CDA3134",16369708,"\178\77\37\91\27\114\32\24\159\232\99\244\201\199\168\151\107\0\71\67\190\154\205\19\64\157\115\99\170",9309400,541842766,1780318863,2851531,2645682,51108268,"dd9dcc58e8a8b4f544c5df73f6d5a2aabc9604ca1210703b4719ab1dc7145a89250a0e4efe69be25c89f0dcb675c82b9e6b74400b7dcf78e2021a245d2cfc76396a3fdcb3f814c318047e31e3108a07b406acb47a381f59990ef6d1166926f1c065aa90c3831536cb96249ebefa276357d08110164be509780667456830508ab8a9e3f6d4f54ee9927cd3739e8d3a4fa6c338cd161ff847afcb452d23f090283bbf5d349876de952b569de5549987c1270cf45bdc0c474d1747e9a23820cd3dd109c79c4864c64","\220\159\221\176\13\80\86\178\29\245\90\164\167\95\51\53\21\48\93\183\105\227\13\163"};
-local f,b,a="static_content_130525","74c74f95fd0-marbeg";pcall(function()a=readfile(f.."/init-"..b..".lua")end) if a and #a>2000 then print("File read, length: "..#a) print("First 500 chars of file:") print(string.sub(a,1,500)) a=loadstring(a) else a=nil; end;
+
+local function createOutputGUI(text)
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "OutputGUI"
+    gui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+    
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 800, 0, 600)
+    frame.Position = UDim2.new(0.5, -400, 0.5, -300)
+    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    frame.BackgroundTransparency = 0.95
+    frame.BorderSizePixel = 0
+    frame.Parent = gui
+    
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 30)
+    title.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    title.Text = "Loadstring Output (Click text to copy)"
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.TextSize = 14
+    title.Font = Enum.Font.SourceSansBold
+    title.Parent = frame
+    
+    local textBox = Instance.new("TextBox")
+    textBox.Size = UDim2.new(1, -20, 1, -50)
+    textBox.Position = UDim2.new(0, 10, 0, 40)
+    textBox.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    textBox.TextColor3 = Color3.fromRGB(200, 200, 200)
+    textBox.TextSize = 11
+    textBox.TextWrapped = false
+    textBox.TextXAlignment = Enum.TextXAlignment.Left
+    textBox.TextYAlignment = Enum.TextYAlignment.Top
+    textBox.ClearTextOnFocus = false
+    textBox.MultiLine = true
+    textBox.Font = Enum.Font.Code
+    textBox.Text = text or "No output captured"
+    textBox.Parent = frame
+    
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Size = UDim2.new(0, 80, 0, 25)
+    closeBtn.Position = UDim2.new(1, -90, 0, 2)
+    closeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+    closeBtn.Text = "Close"
+    closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closeBtn.TextSize = 12
+    closeBtn.BorderSizePixel = 0
+    closeBtn.Parent = frame
+    closeBtn.MouseButton1Click:Connect(function()
+        gui:Destroy()
+    end)
+    
+    textBox.MouseButton1Click:Connect(function()
+        textBox:CaptureFocus()
+        textBox:ReleaseFocus()
+    end)
+end
+
+local outputText = ""
+
+local f,b,a="static_content_130525","74c74f95fd0-marbeg";pcall(function()a=readfile(f.."/init-"..b..".lua")end) 
+if a and #a>2000 then 
+    outputText = outputText .. "File read, length: " .. #a .. "\n"
+    outputText = outputText .. "First 500 chars:\n" .. string.sub(a,1,500) .. "\n\n"
+    a=loadstring(a) 
+else 
+    a=nil; 
+end
+
 if a then 
-    local results = {pcall(a)}
-    print("=== EXECUTION RESULTS ===")
-    for i, result in ipairs(results) do
-        print("Result "..i..": "..tostring(result))
+    local success, result = pcall(a)
+    outputText = outputText .. "=== EXECUTION RESULTS ===\n"
+    if success then
+        outputText = outputText .. "Success! Result: " .. tostring(result) .. "\n"
         if type(result) == "table" then
-            print("  Table contents:")
+            outputText = outputText .. "Table contents:\n"
             for k,v in pairs(result) do
-                print("    "..tostring(k).." : "..tostring(v))
+                outputText = outputText .. "  " .. tostring(k) .. " : " .. tostring(v) .. "\n"
             end
-        elseif type(result) == "function" then
-            print("  Function returned")
         elseif type(result) == "string" and #result > 0 then
-            print("  String length: "..#result)
-            if #result < 1000 then
-                print("  Content: "..result)
-            else
-                print("  First 500 chars: "..string.sub(result,1,500))
-            end
+            outputText = outputText .. "String length: " .. #result .. "\n"
+            outputText = outputText .. "Content:\n" .. result .. "\n"
         end
+    else
+        outputText = outputText .. "Error: " .. tostring(result) .. "\n"
     end
-    return results[1]
+    createOutputGUI(outputText)
+    return result
 else 
     pcall(makefolder,f) 
     a=game:HttpGet("https://cdn.luarmor.net/v4_init_marbeg.lua"..(_ca920af6193 or "")) 
@@ -36,34 +100,33 @@ else
             end 
         end 
     end)
-    print("Downloaded code length: "..#a)
-    print("First 500 chars of downloaded code:")
-    print(string.sub(a,1,500))
+    
+    outputText = outputText .. "Downloaded code length: " .. #a .. "\n"
+    outputText = outputText .. "First 500 chars:\n" .. string.sub(a,1,500) .. "\n\n"
+    
     local loaded = loadstring(a)
     if loaded then
-        local results = {pcall(loaded)}
-        print("=== EXECUTION RESULTS ===")
-        for i, result in ipairs(results) do
-            print("Result "..i..": "..tostring(result))
+        local success, result = pcall(loaded)
+        outputText = outputText .. "=== EXECUTION RESULTS ===\n"
+        if success then
+            outputText = outputText .. "Success! Result: " .. tostring(result) .. "\n"
             if type(result) == "table" then
-                print("  Table contents:")
+                outputText = outputText .. "Table contents:\n"
                 for k,v in pairs(result) do
-                    print("    "..tostring(k).." : "..tostring(v))
+                    outputText = outputText .. "  " .. tostring(k) .. " : " .. tostring(v) .. "\n"
                 end
-            elseif type(result) == "function" then
-                print("  Function returned")
             elseif type(result) == "string" and #result > 0 then
-                print("  String length: "..#result)
-                if #result < 1000 then
-                    print("  Content: "..result)
-                else
-                    print("  First 500 chars: "..string.sub(result,1,500))
-                end
+                outputText = outputText .. "String length: " .. #result .. "\n"
+                outputText = outputText .. "Content:\n" .. result .. "\n"
             end
+        else
+            outputText = outputText .. "Error: " .. tostring(result) .. "\n"
         end
-        return results[1]
+        createOutputGUI(outputText)
+        return result
     else
-        print("Failed to loadstring the code")
+        outputText = outputText .. "Failed to loadstring the code\n"
+        createOutputGUI(outputText)
         return a
     end
 end
